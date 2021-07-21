@@ -74,7 +74,7 @@ namespace gscam {
     nh_private_.param("preroll", preroll_, false);
     nh_private_.param("use_gst_timestamps", use_gst_timestamps_, false);
     nh_private_.param("poll_pipeline", poll_pipeline_, false);
-    nh_private_.param("poll_rate", poll_rate_, false);
+    nh_private_.param("poll_rate", poll_rate_, 1.0);
     
 
     nh_private_.param("reopen_on_eof", reopen_on_eof_, false);
@@ -401,7 +401,10 @@ namespace gscam {
       ros::spinOnce();
       
       if (poll_pipeline_) {
-        gst_element_set_state(pipeline_, GST_STATE_NULL);
+        if(gst_element_set_state(pipeline_, GST_STATE_NULL) == GST_STATE_CHANGE_FAILURE) {
+          ROS_ERROR("Could not pause stream!");
+          return;
+        }
         poll_rate_.sleep();
         if(gst_element_set_state(pipeline_, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
           ROS_ERROR("Could not restart stream!");
