@@ -45,6 +45,10 @@ namespace gscam {
     bool reopen_on_eof_;
     bool use_gst_timestamps_;
 
+    // Polling configuration
+    bool poll_pipeline_;
+    double poll_rate_;
+
     // Camera publisher configuration
     std::string frame_id_;
     int width_, height_;
