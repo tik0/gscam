@@ -266,6 +266,7 @@ namespace gscam {
     ROS_INFO("Started stream.");
 
     // Poll the data as fast a spossible
+    ros::Rate poll_rate(poll_rate_);
     while(ros::ok()) 
     {
       // This should block until a new frame is awake, this way, we'll run at the
@@ -405,7 +406,7 @@ namespace gscam {
           ROS_ERROR("Could not pause stream!");
           return;
         }
-        poll_rate_.sleep();
+        poll_rate.sleep();
         if(gst_element_set_state(pipeline_, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
           ROS_ERROR("Could not restart stream!");
           return;
