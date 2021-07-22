@@ -401,16 +401,22 @@ namespace gscam {
 
       ros::spinOnce();
       
-      if (poll_pipeline_) {
-        if(gst_element_set_state(pipeline_, GST_STATE_NULL) == GST_STATE_CHANGE_FAILURE) {
+      if (poll_pipeline_) {    
+        /*if(gst_element_set_state(pipeline_, GST_STATE_PAUSED) == GST_STATE_CHANGE_FAILURE) {
           ROS_ERROR("Could not pause stream!");
           return;
+        }*/
+        if(!gst_element_send_event(GST_ELEMENT (pipeline_), gst_event_new_flush_start())) {
+          ROS_WARN("Could not flush-start the pipeline!");
         }
         poll_rate.sleep();
-        if(gst_element_set_state(pipeline_, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
+        if(!gst_element_send_event(GST_ELEMENT (pipeline_), gst_event_new_flush_stop(false))) {
+          ROS_WARN("Could not flush-stop the pipeline!");
+        }
+        /*if(gst_element_set_state(pipeline_, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
           ROS_ERROR("Could not restart stream!");
           return;
-        }
+        }*/
       }
     }
   }
