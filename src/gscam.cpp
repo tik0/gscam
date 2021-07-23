@@ -388,6 +388,13 @@ namespace gscam {
 
           // Publish the image/info
           camera_pub_.publish(img, cinfo);
+
+          if (poll_pipeline_) { // https://forums.developer.nvidia.com/t/restarting-pipeline-on-deepstream2-0/63258/13
+            gst_element_set_state (pipeline_, GST_STATE_PAUSED);
+            if(!gst_element_send_event(GST_ELEMENT (pipeline_), gst_event_new_flush_start())) {
+              ROS_WARN("Could not flush-start the pipeline!");
+            }
+          }
       }
 
       // Release the buffer
@@ -401,22 +408,18 @@ namespace gscam {
 
       ros::spinOnce();
       
-      if (poll_pipeline_) {    
-        /*if(gst_element_set_state(pipeline_, GST_STATE_PAUSED) == GST_STATE_CHANGE_FAILURE) {
-          ROS_ERROR("Could not pause stream!");
-          return;
-        }*/
-        if(!gst_element_send_event(GST_ELEMENT (pipeline_), gst_event_new_flush_start())) {
-          ROS_WARN("Could not flush-start the pipeline!");
-        }
+      if (poll_pipeline_) { // https://forums.developer.nvidia.com/t/restarting-pipeline-on-deepstream2-0/63258/13
+        // gst_element_set_state (pipeline_, GST_STATE_PAUSED);
+        // if(!gst_element_send_event(GST_ELEMENT (pipeline_), gst_event_new_flush_start())) {
+        //   ROS_WARN("Could not flush-start the pipeline!");
+        // }
         poll_rate.sleep();
-        if(!gst_element_send_event(GST_ELEMENT (pipeline_), gst_event_new_flush_stop(false))) {
+        if(!gst_element_send_event(GST_ELEMENT (pipeline_), gst_event_new_flush_stop(true))) {
           ROS_WARN("Could not flush-stop the pipeline!");
         }
-        /*if(gst_element_set_state(pipeline_, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
-          ROS_ERROR("Could not restart stream!");
-          return;
-        }*/
+        gst_element_set_state (pipeline_, GST_STATE_READY);
+        gst_element_set_state (pipeline_, GST_STATE_PAUSED);
+        gst_element_set_state (pipeline_, GST_STATE_PLAYING);
       }
     }
   }
